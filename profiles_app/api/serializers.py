@@ -101,12 +101,8 @@ class CustomerProfileListSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'file',
-            'location',
-            'tel',
-            'description',
-            'working_hours',
-            'type',
             'uploaded_at',
+            'type',
         ]
 
     uploaded_at = serializers.DateTimeField(source='created_at', read_only=True)
@@ -114,11 +110,7 @@ class CustomerProfileListSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         """Make sure that empty fields return "" instead of null."""
         data = super().to_representation(instance)
-        text_fields = [
-            'first_name', 'last_name', 'location',
-            'tel', 'description', 'working_hours',
-        ]
-        for field in text_fields:
+        for field in ['first_name', 'last_name']:
             if data[field] is None:
                 data[field] = ''
         return data

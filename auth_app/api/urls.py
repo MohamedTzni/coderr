@@ -1,6 +1,6 @@
 """
-URL-Konfiguration für die auth_app.
-Definiert die Pfade für Registration und Login.
+URL configuration for the auth app.
+Defines the paths for registration and login.
 """
 
 from django.urls import path

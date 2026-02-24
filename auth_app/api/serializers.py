@@ -1,6 +1,6 @@
 """
-Serializers für die Authentifizierung.
-Wandeln JSON-Daten in Python-Objekte um und validieren die Eingaben.
+Serializers for authentication.
+Handles validation for registration and login data.
 """
 
 from django.contrib.auth.models import User
@@ -9,8 +9,8 @@ from rest_framework import serializers
 
 class RegistrationSerializer(serializers.Serializer):
     """
-    Serializer für die Benutzerregistrierung.
-    Prüft ob alle Felder vorhanden und gültig sind.
+    Serializer for user registration.
+    Validates that all required fields are present and correct.
     """
     username = serializers.CharField(max_length=150)
     email = serializers.EmailField()
@@ -19,27 +19,27 @@ class RegistrationSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=['customer', 'business'])
 
     def validate_username(self, value):
-        """Prüft ob der Username schon vergeben ist."""
+        """Check if the username is already taken."""
         if User.objects.filter(username=value).exists():
-            raise serializers.ValidationError("Dieser Username ist bereits vergeben.")
+            raise serializers.ValidationError("This username is already taken.")
         return value
 
     def validate_email(self, value):
-        """Prüft ob die E-Mail schon vergeben ist."""
+        """Check if the email is already taken."""
         if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Diese E-Mail ist bereits vergeben.")
+            raise serializers.ValidationError("This email is already taken.")
         return value
 
     def validate(self, data):
-        """Prüft ob die beiden Passwörter übereinstimmen."""
+        """Check if both passwords match."""
         if data['password'] != data['repeated_password']:
             raise serializers.ValidationError(
-                {"repeated_password": "Die Passwörter stimmen nicht überein."}
+                {"repeated_password": "The passwords do not match."}
             )
         return data
 
     def create(self, validated_data):
-        """Erstellt einen neuen User mit den validierten Daten."""
+        """Create a new user with the validated data."""
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
@@ -50,8 +50,8 @@ class RegistrationSerializer(serializers.Serializer):
 
 class LoginSerializer(serializers.Serializer):
     """
-    Serializer für den Login.
-    Erwartet username und password.
+    Serializer for user login.
+    Expects username and password.
     """
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)

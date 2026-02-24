@@ -1,6 +1,6 @@
 """
-Views für die Authentifizierung.
-Enthält die Logik für Registration und Login.
+Views for authentication.
+Contains the logic for registration and login.
 """
 
 from django.contrib.auth import authenticate
@@ -16,13 +16,14 @@ from .serializers import LoginSerializer, RegistrationSerializer
 
 class RegistrationView(APIView):
     """
-    Endpoint für die Benutzerregistrierung.
-    Erstellt einen neuen User mit Profil und gibt ein Token zurück.
+    POST /api/registration/ – Register a new user.
+    Creates a new user with a profile and returns a token.
+    No authentication required.
     """
     permission_classes = [AllowAny]
 
     def post(self, request):
-        """Erstellt einen neuen Benutzer und gibt Token + User-Daten zurück."""
+        """Create a new user, profile, and token."""
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
@@ -30,6 +31,7 @@ class RegistrationView(APIView):
         UserProfile.objects.create(
             user=user,
             type=serializer.validated_data['type'],
+            email=user.email,
         )
         return Response(
             {
@@ -44,13 +46,14 @@ class RegistrationView(APIView):
 
 class LoginView(APIView):
     """
-    Endpoint für den Login.
-    Authentifiziert den User und gibt ein Token zurück.
+    POST /api/login/ – Log in a user.
+    Authenticates the user and returns a token.
+    No authentication required.
     """
     permission_classes = [AllowAny]
 
     def post(self, request):
-        """Authentifiziert einen Benutzer und gibt Token + User-Daten zurück."""
+        """Authenticate user and return token + user data."""
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = authenticate(
@@ -59,7 +62,7 @@ class LoginView(APIView):
         )
         if user is None:
             return Response(
-                {'detail': 'Ungültige Anmeldedaten.'},
+                {'detail': 'Invalid credentials.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         token, created = Token.objects.get_or_create(user=user)

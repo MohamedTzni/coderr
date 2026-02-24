@@ -71,7 +71,6 @@ class BusinessProfileListSerializer(serializers.ModelSerializer):
             'description',
             'working_hours',
             'type',
-            'created_at',
         ]
 
     def to_representation(self, instance):

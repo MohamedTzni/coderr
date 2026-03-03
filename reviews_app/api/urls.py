@@ -1,5 +1,13 @@
-"""URL-Konfiguration für die reviews_app."""
+"""
+URL configuration for the reviews app.
+Defines paths for review CRUD endpoints.
+"""
 
 from django.urls import path
 
-urlpatterns = []
+from .views import ReviewDetailView, ReviewListCreateView
+
+urlpatterns = [
+    path('reviews/', ReviewListCreateView.as_view(), name='review-list-create'),
+    path('reviews/<int:pk>/', ReviewDetailView.as_view(), name='review-detail'),
+]

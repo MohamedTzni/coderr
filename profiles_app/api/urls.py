@@ -12,7 +12,7 @@ from .views import (
 )
 
 urlpatterns = [
-    path('profile/<int:pk>/', UserProfileDetailView.as_view(), name='profile-detail'),
+    path('profile/<int:user_id>/', UserProfileDetailView.as_view(), name='profile-detail'),
     path('profiles/business/', BusinessProfileListView.as_view(), name='business-profiles'),
     path('profiles/customer/', CustomerProfileListView.as_view(), name='customer-profiles'),
 ]

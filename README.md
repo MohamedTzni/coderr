@@ -60,7 +60,7 @@ The API is available at `http://127.0.0.1:8000/api/`
 
 ## API Endpoints
 
-### Authentication
+### Auth Endpoints
 
 | Method | Endpoint             | Description              |
 | ------ | -------------------- | ------------------------ |
@@ -117,7 +117,7 @@ The API is available at `http://127.0.0.1:8000/api/`
 
 The API uses token-based authentication. Include the token in every request header:
 
-```text
+```http
 Authorization: Token <your-token>
 ```
 

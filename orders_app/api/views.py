@@ -60,6 +60,7 @@ class OrderDetailView(APIView):
     PATCH /api/orders/{id}/ – Update order status.
     DELETE /api/orders/{id}/ – Delete an order.
     """
+    permission_classes = [IsAuthenticated]
 
     def get_order(self, pk):
         """Get an order by ID or return None."""
@@ -68,43 +69,34 @@ class OrderDetailView(APIView):
         except Order.DoesNotExist:
             return None
 
-    def patch(self, request, pk):
-        """Update the status of an order. Only business users."""
-        if not request.user.is_authenticated:
-            return Response(
-                {'detail': 'Authentication required.'},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
+    def check_business_permission(self, request):
+        """Return 403 response if user is not a business user, else None."""
         permission = IsBusinessUser()
         if not permission.has_permission(request, self):
             return Response(
                 {'detail': 'Only business users can update orders.'},
                 status=status.HTTP_403_FORBIDDEN,
             )
+        return None
+
+    def patch(self, request, pk):
+        """Update the status of an order. Only business users."""
+        error = self.check_business_permission(request)
+        if error:
+            return error
         order = self.get_order(pk)
         if order is None:
             return Response(
                 {'detail': 'Order not found.'},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        serializer = OrderUpdateSerializer(
-            order, data=request.data, partial=True
-        )
+        serializer = OrderUpdateSerializer(order, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        response_serializer = OrderSerializer(order)
-        return Response(
-            response_serializer.data,
-            status=status.HTTP_200_OK,
-        )
+        return Response(OrderSerializer(order).data, status=status.HTTP_200_OK)
 
     def delete(self, request, pk):
         """Delete an order. Only admin/staff users."""
-        if not request.user.is_authenticated:
-            return Response(
-                {'detail': 'Authentication required.'},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
         if not request.user.is_staff:
             return Response(
                 {'detail': 'Only admin users can delete orders.'},

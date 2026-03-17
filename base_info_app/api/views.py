@@ -23,30 +23,20 @@ class BaseInfoView(APIView):
     """
     permission_classes = [AllowAny]
 
+    def get_average_rating(self):
+        """Return average rating rounded to 1 decimal, or 0.0 if no reviews."""
+        result = Review.objects.aggregate(avg_rating=Avg('rating'))
+        avg = result['avg_rating']
+        return round(avg, 1) if avg is not None else 0.0
+
     def get(self, request):
-        """
-        Return aggregated platform statistics.
-        average_rating is rounded to one decimal place.
-        """
-        review_count = Review.objects.count()
-        average_rating_result = Review.objects.aggregate(
-            avg_rating=Avg('rating')
-        )
-        average_rating = average_rating_result['avg_rating']
-        if average_rating is not None:
-            average_rating = round(average_rating, 1)
-        else:
-            average_rating = 0.0
-        business_profile_count = UserProfile.objects.filter(
-            type='business'
-        ).count()
-        offer_count = Offer.objects.count()
+        """Return aggregated platform statistics."""
         return Response(
             {
-                'review_count': review_count,
-                'average_rating': average_rating,
-                'business_profile_count': business_profile_count,
-                'offer_count': offer_count,
+                'review_count': Review.objects.count(),
+                'average_rating': self.get_average_rating(),
+                'business_profile_count': UserProfile.objects.filter(type='business').count(),
+                'offer_count': Offer.objects.count(),
             },
             status=status.HTTP_200_OK,
         )

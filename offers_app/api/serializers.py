@@ -189,29 +189,31 @@ class OfferUpdateSerializer(serializers.ModelSerializer):
             'details',
         ]
 
+    def update_detail(self, detail, data):
+        """Update a single OfferDetail with the given data."""
+        detail.title = data.get('title', detail.title)
+        detail.revisions = data.get('revisions', detail.revisions)
+        detail.delivery_time_in_days = data.get('delivery_time_in_days', detail.delivery_time_in_days)
+        detail.price = data.get('price', detail.price)
+        detail.features = data.get('features', detail.features)
+        detail.save()
+
+    def update_details(self, instance, details_data):
+        """Update all provided details matched by offer_type."""
+        for detail_data in details_data:
+            detail = instance.details.filter(offer_type=detail_data.get('offer_type')).first()
+            if detail:
+                self.update_detail(detail, detail_data)
+
     def update(self, instance, validated_data):
-        """
-        Update the offer fields and optionally update details.
-        Details are matched by their offer_type field.
-        """
+        """Update the offer fields and optionally its details."""
         details_data = validated_data.pop('details', None)
         instance.title = validated_data.get('title', instance.title)
         instance.image = validated_data.get('image', instance.image)
         instance.description = validated_data.get('description', instance.description)
         instance.save()
         if details_data is not None:
-            for detail_data in details_data:
-                offer_type = detail_data.get('offer_type')
-                detail = instance.details.filter(offer_type=offer_type).first()
-                if detail:
-                    detail.title = detail_data.get('title', detail.title)
-                    detail.revisions = detail_data.get('revisions', detail.revisions)
-                    detail.delivery_time_in_days = detail_data.get(
-                        'delivery_time_in_days', detail.delivery_time_in_days
-                    )
-                    detail.price = detail_data.get('price', detail.price)
-                    detail.features = detail_data.get('features', detail.features)
-                    detail.save()
+            self.update_details(instance, details_data)
         return instance
 
 

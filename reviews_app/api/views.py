@@ -38,24 +38,20 @@ class ReviewListCreateView(APIView):
             return [IsAuthenticated(), IsCustomerUser()]
         return [IsAuthenticated()]
 
-    def get(self, request):
-        """
-        Return all reviews with optional filtering and ordering.
-        Query params: business_user_id, reviewer_id, ordering.
-        """
-        reviews = Review.objects.all()
-        # Filter by business_user_id
-        business_user_id = request.query_params.get('business_user_id')
-        if business_user_id:
-            reviews = reviews.filter(business_user_id=business_user_id)
-        # Filter by reviewer_id
-        reviewer_id = request.query_params.get('reviewer_id')
-        if reviewer_id:
-            reviews = reviews.filter(reviewer_id=reviewer_id)
-        # Ordering
-        ordering = request.query_params.get('ordering')
+    def apply_filters(self, reviews, params):
+        """Filter reviews by business_user_id and reviewer_id if provided."""
+        if params.get('business_user_id'):
+            reviews = reviews.filter(business_user_id=params['business_user_id'])
+        if params.get('reviewer_id'):
+            reviews = reviews.filter(reviewer_id=params['reviewer_id'])
+        ordering = params.get('ordering')
         if ordering in ['updated_at', '-updated_at', 'rating', '-rating']:
             reviews = reviews.order_by(ordering)
+        return reviews
+
+    def get(self, request):
+        """Return all reviews with optional filtering and ordering."""
+        reviews = self.apply_filters(Review.objects.all(), request.query_params)
         serializer = ReviewSerializer(reviews, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -91,42 +87,46 @@ class ReviewDetailView(APIView):
         except Review.DoesNotExist:
             return None
 
-    def patch(self, request, pk):
-        """Update rating and description of a review."""
+    def get_review_or_error(self, pk):
+        """Return (review, None) or (None, 404 response)."""
         review = self.get_review(pk)
         if review is None:
-            return Response(
+            return None, Response(
                 {'detail': 'Review not found.'},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        # Check if the user is the creator
+        return review, None
+
+    def check_creator_permission(self, request, review, action):
+        """Return 403 response if user is not the review creator, else None."""
         permission = IsReviewCreator()
         if not permission.has_object_permission(request, self, review):
             return Response(
-                {'detail': 'You can only edit your own reviews.'},
+                {'detail': f'You can only {action} your own reviews.'},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        serializer = ReviewUpdateSerializer(
-            review, data=request.data, partial=True
-        )
+        return None
+
+    def patch(self, request, pk):
+        """Update rating and description of a review."""
+        review, error = self.get_review_or_error(pk)
+        if error:
+            return error
+        error = self.check_creator_permission(request, review, 'edit')
+        if error:
+            return error
+        serializer = ReviewUpdateSerializer(review, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, pk):
         """Delete a review."""
-        review = self.get_review(pk)
-        if review is None:
-            return Response(
-                {'detail': 'Review not found.'},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        # Check if the user is the creator
-        permission = IsReviewCreator()
-        if not permission.has_object_permission(request, self, review):
-            return Response(
-                {'detail': 'You can only delete your own reviews.'},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        review, error = self.get_review_or_error(pk)
+        if error:
+            return error
+        error = self.check_creator_permission(request, review, 'delete')
+        if error:
+            return error
         review.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

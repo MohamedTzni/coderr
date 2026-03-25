@@ -4,6 +4,7 @@ Allows filtering offers by creator, price, and delivery time.
 """
 
 import django_filters
+from django.db.models import Min
 
 from offers_app.models import Offer
 
@@ -26,8 +27,10 @@ class OfferFilter(django_filters.FilterSet):
         fields = ['creator_id']
 
     def filter_min_price(self, queryset, name, value):
-        """Filter offers that have at least one detail with price >= value."""
-        return queryset.filter(details__price__gte=value).distinct()
+        """Filter offers whose cheapest detail has price >= value."""
+        return queryset.annotate(min_detail_price=Min('details__price')).filter(
+            min_detail_price__gte=value
+        )
 
     def filter_max_delivery_time(self, queryset, name, value):
         """Filter offers with delivery time <= value."""

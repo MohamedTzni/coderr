@@ -12,6 +12,7 @@ from .filters import OfferFilter
 from .pagination import OfferPagination
 from .permissions import IsBusinessUser, IsOfferCreator
 from .serializers import (
+    OfferCreateResponseSerializer,
     OfferCreateSerializer,
     OfferDetailSingleSerializer,
     OfferDetailViewSerializer,
@@ -64,7 +65,7 @@ class OfferListCreateView(generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         offer = serializer.instance
-        response_serializer = OfferDetailViewSerializer(
+        response_serializer = OfferCreateResponseSerializer(
             offer, context={'request': request}
         )
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)

@@ -171,6 +171,24 @@ class OfferCreateSerializer(serializers.ModelSerializer):
         return offer
 
 
+class OfferCreateResponseSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the POST /api/offers/ response.
+    Returns the full offer with all nested detail objects.
+    """
+    details = OfferDetailSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Offer
+        fields = [
+            'id',
+            'title',
+            'image',
+            'description',
+            'details',
+        ]
+
+
 class OfferUpdateSerializer(serializers.ModelSerializer):
     """
     Serializer for PATCH /api/offers/{id}/.

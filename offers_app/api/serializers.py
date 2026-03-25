@@ -219,9 +219,13 @@ class OfferUpdateSerializer(serializers.ModelSerializer):
     def update_details(self, instance, details_data):
         """Update all provided details matched by offer_type."""
         for detail_data in details_data:
-            detail = instance.details.filter(offer_type=detail_data.get('offer_type')).first()
-            if detail:
-                self.update_detail(detail, detail_data)
+            offer_type = detail_data.get('offer_type')
+            detail = instance.details.filter(offer_type=offer_type).first()
+            if not detail:
+                raise serializers.ValidationError(
+                    {'details': f"No detail with offer_type '{offer_type}' exists for this offer."}
+                )
+            self.update_detail(detail, detail_data)
 
     def update(self, instance, validated_data):
         """Update the offer fields and optionally its details."""

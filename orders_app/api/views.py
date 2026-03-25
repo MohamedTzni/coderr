@@ -81,15 +81,15 @@ class OrderDetailView(APIView):
 
     def patch(self, request, pk):
         """Update the status of an order. Only business users."""
-        error = self.check_business_permission(request)
-        if error:
-            return error
         order = self.get_order(pk)
         if order is None:
             return Response(
                 {'detail': 'Order not found.'},
                 status=status.HTTP_404_NOT_FOUND,
             )
+        error = self.check_business_permission(request)
+        if error:
+            return error
         serializer = OrderUpdateSerializer(order, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()

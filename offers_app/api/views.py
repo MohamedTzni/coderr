@@ -3,6 +3,8 @@ Views for the offers app.
 Handles all offer CRUD endpoints and offer detail retrieval.
 """
 
+from django.db.models import Min
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, filters, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -26,16 +28,19 @@ class OfferListCreateView(generics.ListCreateAPIView):
     GET /api/offers/ – List all offers (public, paginated, filterable).
     POST /api/offers/ – Create a new offer (business users only).
     """
-    queryset = Offer.objects.all()
     pagination_class = OfferPagination
     filterset_class = OfferFilter
     filter_backends = [
+        DjangoFilterBackend,
         filters.SearchFilter,
         filters.OrderingFilter,
     ]
     search_fields = ['title', 'description']
     ordering_fields = ['updated_at', 'min_price']
     ordering = ['-updated_at']
+
+    def get_queryset(self):
+        return Offer.objects.annotate(min_price=Min('details__price'))
 
     def get_permissions(self):
         """

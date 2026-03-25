@@ -28,9 +28,7 @@ class OfferFilter(django_filters.FilterSet):
 
     def filter_min_price(self, queryset, name, value):
         """Filter offers whose cheapest detail has price >= value."""
-        return queryset.annotate(min_detail_price=Min('details__price')).filter(
-            min_detail_price__gte=value
-        )
+        return queryset.filter(min_price__gte=value)
 
     def filter_max_delivery_time(self, queryset, name, value):
         """Filter offers with delivery time <= value."""

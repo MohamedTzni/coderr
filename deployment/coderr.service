@@ -1,0 +1,19 @@
+[Unit]
+Description=Coderr Django Backend
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/coderr
+EnvironmentFile=/var/www/coderr/.env
+ExecStart=/var/www/coderr/venv/bin/gunicorn \
+    --workers 3 \
+    --bind 127.0.0.1:8000 \
+    --access-logfile /var/log/coderr/access.log \
+    --error-logfile /var/log/coderr/error.log \
+    core.wsgi:application
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

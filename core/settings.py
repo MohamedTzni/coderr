@@ -18,10 +18,10 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # Debug-Modus – im Entwicklungsmodus True, in Produktion MUSS das False sein
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-# Welche Hosts dürfen auf das Backend zugreifen
+# Welche Hosts dürfen auf das Backend zugreifen (kommagetrennt in .env)
 ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
+    host.strip()
+    for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 ]
 
 # Alle installierten Apps – Django-eigene + Drittanbieter + unsere eigenen
@@ -51,6 +51,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -79,13 +80,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# Datenbank – SQLite für Entwicklung
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Datenbank – SQLite lokal, PostgreSQL in Produktion
+_db_engine = os.getenv('DB_ENGINE', 'django.db.backends.sqlite3')
+
+if _db_engine == 'django.db.backends.sqlite3':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': _db_engine,
+            'NAME': os.getenv('DB_NAME'),
+            'USER': os.getenv('DB_USER'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST', 'localhost'),
+            'PORT': os.getenv('DB_PORT', '5432'),
+        }
+    }
 
 # Passwort-Validierung
 AUTH_PASSWORD_VALIDATORS = [
@@ -103,6 +118,8 @@ USE_TZ = True
 
 # Statische Dateien (CSS, JavaScript, Bilder)
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Medien-Dateien (z.B. hochgeladene Profilbilder)
 MEDIA_URL = '/media/'
@@ -120,10 +137,11 @@ REST_FRAMEWORK = {
     ],
 }
 
-# CORS Einstellungen – Erlaubt dem Frontend mit dem Backend zu kommunizieren
+# CORS Einstellungen – Erlaubt dem Frontend mit dem Backend zu kommunizieren (kommagetrennt in .env)
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5500',
-    'http://127.0.0.1:5500',
-    'http://localhost:5501',
-    'http://127.0.0.1:5501',
+    origin.strip()
+    for origin in os.getenv(
+        'CORS_ALLOWED_ORIGINS',
+        'http://localhost:5500,http://127.0.0.1:5500,http://localhost:5501,http://127.0.0.1:5501'
+    ).split(',')
 ]

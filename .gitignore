@@ -210,8 +210,6 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-# Frontend
-Frontend
 
 # PDF files
 *.pdf

@@ -113,6 +113,12 @@ The API is available at `http://127.0.0.1:8000/api/`
 | ------ | ----------------- | ----------------------------- |
 | GET    | `/api/base-info/` | Platform statistics (public)  |
 
+## Frontend
+
+The frontend for this project was provided by the [Developer Akademie](https://github.com/Developer-Akademie-Backendkurs/project.Coderr.git) as part of the backend course. I forked the original repository and included it directly in this project under the `frontend/` directory.
+
+The frontend is a plain HTML/CSS/JS project (no framework, no build step) and is served via Nginx alongside the backend on the same VPS.
+
 ## Authentication
 
 The API uses token-based authentication. Include the token in every request header:

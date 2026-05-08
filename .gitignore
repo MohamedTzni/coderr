@@ -141,6 +141,7 @@ celerybeat.pid
 # Environments
 .env
 DOCKER_GUIDE.md
+DEPLOYMENT_STATUS.md
 .envrc
 .venv
 env/

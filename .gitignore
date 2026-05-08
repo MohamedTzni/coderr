@@ -140,6 +140,7 @@ celerybeat.pid
 
 # Environments
 .env
+DOCKER_GUIDE.md
 .envrc
 .venv
 env/

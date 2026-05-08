@@ -1,0 +1,12 @@
+.git
+.env
+.env.docker
+db.sqlite3
+__pycache__
+*.pyc
+*.pyo
+media/
+staticfiles/
+frontend/
+.venv
+venv/
